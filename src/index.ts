@@ -10,12 +10,14 @@ import dotenv from "dotenv";
 import hash from "object-hash"
 import Link from "./schema/Link"
 import jwt, { JwtPayload } from "jsonwebtoken"
+import cors from "cors"
 
 dotenv.config();
 const PORT = process.env.PORT || 5000
 
 const app = express();
 app.use(express.json())
+app.use(cors())
 
 const userSchema = z.object({
     username: z.string().min(3).max(100),
