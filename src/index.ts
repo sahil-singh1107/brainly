@@ -180,7 +180,7 @@ app.post("/api/v1/brain/share", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const id = contentReq.userId;
     try {
-        await Link.create({hash: hash(id!, {algorithm: "sha1"}), userId: id})
+        await Link.create({hash: hash(id!, {algorithm: "sha1"}), userId: id, mode: req.body.mode})
         res.status(200).json({message: "link created"})
         return;
     } catch (error) {
@@ -190,8 +190,28 @@ app.post("/api/v1/brain/share", middleware, async (req, res) => {
     }
 })
 
-app.get("/api/v1/brain:shareLink", (req, res) => {
-
+app.get("/api/v1/brain:shareLink", async (req, res) => {
+    const hash = req.query.hash;
+    const link = await Link.findOne({ hash })
+    try {
+        console.log(link);
+        if (!link) {
+           res.status(404).json({ message: "Link not found" });
+           return;
+        }
+        if (link.mode === 0) {
+            res.status(200).json({ message: "Link is private" });
+            return;
+        }
+        const userId = link.userId
+        const data = await Content.find({userId}).populate("tags", "title").populate("userId", "username");
+        res.status(200).json({ data });
+        return;
+    } catch (error) {
+        console.error("Error fetching link or content:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+        return;
+    }
 })
 
 connectDB().then(() => app.listen(PORT, () => console.log("server up and running"))).catch((err) => console.log(err));
