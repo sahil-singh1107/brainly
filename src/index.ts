@@ -62,6 +62,10 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
         const userInput: UserInput = parsedResult.data
         bcrypt.hash(userInput.password, 10, async function (err, hash) {
             try {
+                let user = await User.findOne({username: userInput.username})
+                if (user) {
+                    res.status(400).json({message: "User already exists"})
+                }
                 await User.create({ username: userInput.username, password: hash })
                 res.status(200).json({ message: "User created successfully" })
                 return;
