@@ -234,16 +234,10 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
 app.post("/api/v1/getPosts", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const id = contentReq.userId;
-
     const { tags } = req.body
-
     console.log(tags)
-
     try {
-        let data = await Content.find({
-            userId: id,
-            tags: { $in: tags }
-        })
+        let data = await Content.find()
 
         res.status(200).json({ data });
     } catch (error) {
