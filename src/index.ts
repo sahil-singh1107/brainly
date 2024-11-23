@@ -144,7 +144,7 @@ app.post("/api/v1/getcontent", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const userId = contentReq.userId;
     try {
-        let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username")
+        let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username").select("createdAt")
         //console.log(data)
         res.status(200).json({ data });
     } catch (error) {
