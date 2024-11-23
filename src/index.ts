@@ -240,7 +240,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
     }
 
     try {
-        const tagObjects = await Tag.find({ name: { $in: tags } }).select("_id");
+        const tagObjects = await Tag.find({ title: { $in: tags } }).select("_id");
         if (tagObjects.length === 0) {
             res.status(404).json({ error: "No matching tags found" });
             return;
