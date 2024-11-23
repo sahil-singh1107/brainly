@@ -246,8 +246,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
             return;
         }
         const tagIds = tagObjects.map((tag) => tag._id);
-        const content = await Content.find({ tags: { $in: tagIds } }).select("link linkType title tags userId createdAt").populate("tags").populate("userId");
-
+        const content = await Content.find({ tags: { $in: tagIds } }).select("link linkType title tags userId createdAt").populate("tags", "title").populate("userId", "username");
         res.status(200).json({ data: content });
         return;
     } catch (error) {
@@ -256,6 +255,5 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
         return;
     }
 });
-
 
 connectDB().then(() => app.listen(PORT, () => console.log("server up and running"))).catch((err) => console.log(err));
