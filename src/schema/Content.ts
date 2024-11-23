@@ -11,6 +11,8 @@ const contentSchema = new Schema({
     title: {type: String, require: true},
     tags: [{type: Types.ObjectId, ref: "Tag"}],
     userId: {type: Types.ObjectId, ref: "User"}
+}, {
+    timestamps: true
 })
 
 const contentModel = mongoose.model("Content", contentSchema);
