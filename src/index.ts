@@ -233,26 +233,22 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
 
 app.post("/api/v1/getPosts", middleware, async (req, res) => {
     const { tags } = req.body;
-
+    console.log(tags)
     if (!Array.isArray(tags) || tags.length === 0) {
        res.status(400).json({ error: "Tags must be a non-empty array" });
        return;
     }
 
     try {
-        
         const tagObjects = await Tag.find({ name: { $in: tags } }).select("_id");
         if (tagObjects.length === 0) {
             res.status(404).json({ error: "No matching tags found" });
             return;
         }
-
         const tagIds = tagObjects.map((tag) => tag._id);
-
-        // Step 2: Query Content model using the resolved ObjectId references
         const content = await Content.find({ tags: { $in: tagIds } })
-            .populate("tags") // Populate tag details
-            .populate("userId"); // Populate user details if needed
+            .populate("tags") 
+            .populate("userId");
 
         res.status(200).json({ data: content });
         return;
