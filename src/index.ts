@@ -231,8 +231,8 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
     }
 })
 
-app.post("/api/v1/getPosts", middleware, async (req, res) => {
-    const contentReq = req as ContentRequest; // Ensure ContentRequest is defined properly
+app.post("/api/v1/getPosts", middleware, async (req: Request, res: Response) => {
+    const contentReq = req as ContentRequest;
     const id = contentReq.userId;
     const { tags } = req.body;
 
@@ -242,7 +242,13 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
     }
 
     try {
-        const data = await Content.find({ tags, userId: id }).populate("tags");
+        // Convert string tags to ObjectId
+        const tagIds = await Tag.find({ name: { $in: tags } }).select("_id");
+        const tagIdArray = tagIds.map((tag) => tag._id);
+
+        // Fetch content with matching tag ObjectIds
+        const data = await Content.find({ tags: { $in: tagIdArray } }).populate("tags");
+
         res.status(200).json({ data });
         return;
     } catch (error) {
@@ -251,5 +257,6 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
         return;
     }
 });
+
 
 connectDB().then(() => app.listen(PORT, () => console.log("server up and running"))).catch((err) => console.log(err));
