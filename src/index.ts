@@ -242,9 +242,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
     }
 
     try {
-        // Fetch content and populate tags field
-        const data = await Content.find({ tags: { $in: tags } }).populate("tags");
-        
+        const data = await Content.find({ tags, userId: id }).populate("tags");
         res.status(200).json({ data });
         return;
     } catch (error) {
