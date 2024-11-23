@@ -61,9 +61,9 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
         const userInput: UserInput = parsedResult.data
         bcrypt.hash(userInput.password, 10, async function (err, hash) {
             try {
-                let user = await User.findOne({username: userInput.username})
+                let user = await User.findOne({ username: userInput.username })
                 if (user) {
-                    res.status(400).json({message: "User already exists"})
+                    res.status(400).json({ message: "User already exists" })
                     return;
                 }
                 await User.create({ username: userInput.username, password: hash })
@@ -78,7 +78,7 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
     }
     else {
         // @ts-ignore
-        res.status(400).json({message: parsedResult.error.errors[0].message});
+        res.status(400).json({ message: parsedResult.error.errors[0].message });
         return;
     }
 })
@@ -105,7 +105,7 @@ app.post("/api/v1/signin", async (req, res) => {
         });
     }
     else {
-        res.status(400).json({message: parsedResult.error.errors[0].message});
+        res.status(400).json({ message: parsedResult.error.errors[0].message });
         return;
     }
 })
@@ -126,7 +126,7 @@ app.post("/api/v1/content", middleware, async (req, res) => {
             if (!tag) {
                 tag = await Tag.create({ title: tagTitle });
             }
-            tagIds.push(tag._id); 
+            tagIds.push(tag._id);
         }
 
         await Content.create({ link, linkType, title, tags: tagIds, userId });
@@ -135,7 +135,7 @@ app.post("/api/v1/content", middleware, async (req, res) => {
 
     }
     else {
-        res.status(400).json({message: parsedResult.error.errors[0].message});
+        res.status(400).json({ message: parsedResult.error.errors[0].message });
         return;
     }
 })
@@ -144,40 +144,40 @@ app.post("/api/v1/getcontent", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const userId = contentReq.userId;
     try {
-        let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username");  
+        let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username");
         //console.log(data)
         res.status(200).json({ data });
     } catch (error) {
-        res.status(500).json({ error }); 
+        res.status(500).json({ error });
     }
 })
 
-app.delete("/api/v1/content", middleware,  async (req, res) => {
+app.delete("/api/v1/content", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const id = contentReq.userId;
     const { contentId } = req.body;
 
     try {
-        let content = await Content.findOne({_id: contentId});
-    
+        let content = await Content.findOne({ _id: contentId });
+
         if (!content) {
             res.status(404).json({ message: "Content not found" });
             return;
         }
         // @ts-ignore
         if (content.userId.toString() === id) {
-        
-             await Content.deleteOne({ _id: contentId });
-             res.status(200).json({ message: "Content deleted" });
-             return;
+
+            await Content.deleteOne({ _id: contentId });
+            res.status(200).json({ message: "Content deleted" });
+            return;
         } else {
-            
-             res.status(403).json({ message: "Unauthorized to delete this content" });
-             return;
+
+            res.status(403).json({ message: "Unauthorized to delete this content" });
+            return;
         }
     } catch (error) {
         console.error(error);
-      
+
         res.status(500).json({ message: "An error occurred while deleting content" });
         return;
     }
@@ -187,8 +187,8 @@ app.post("/api/v1/brain/share", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const id = contentReq.userId;
     try {
-        await Link.create({hash: hash(id!, {algorithm: "sha1"}), userId: id, mode: req.body.mode})
-        res.status(200).json({message: "link created"})
+        await Link.create({ hash: hash(id!, { algorithm: "sha1" }), userId: id, mode: req.body.mode })
+        res.status(200).json({ message: "link created" })
         return;
     } catch (error) {
         console.log(error);
@@ -202,15 +202,15 @@ app.get("/api/v1/brain:shareLink", async (req, res) => {
     const link = await Link.findOne({ hash })
     try {
         if (!link) {
-           res.status(404).json({ message: "Link not found" });
-           return;
+            res.status(404).json({ message: "Link not found" });
+            return;
         }
         if (link.mode === 0) {
             res.status(200).json({ message: "Link is private" });
             return;
         }
         const userId = link.userId
-        const data = await Content.find({userId}).populate("tags", "title").populate("userId", "username");
+        const data = await Content.find({ userId }).populate("tags", "title").populate("userId", "username");
         res.status(200).json({ data });
         return;
     } catch (error) {
@@ -220,11 +220,32 @@ app.get("/api/v1/brain:shareLink", async (req, res) => {
     }
 })
 
-app.post("/api/v1/tags", middleware, async (req,res) => {
+app.post("/api/v1/tags", middleware, async (req, res) => {
     try {
-        let data = await Tag.find({}, {title: 1, _id: 0});
-        res.status(201).json({data});
+        let data = await Tag.find({}, { title: 1, _id: 0 });
+        res.status(201).json({ data });
         return;
+    } catch (error) {
+        console.log(error)
+        return;
+    }
+})
+
+app.post("/api/v1/getPosts", middleware, async (req, res) => {
+    const contentReq = req as ContentRequest;
+    const id = contentReq.userId;
+
+    const { tags } = req.body
+
+    console.log(tags)
+
+    try {
+        let data = await Content.find({
+            userId: id,
+            tags: { $in: tags }
+        })
+
+        res.status(200).json({ data });
     } catch (error) {
         console.log(error)
         return;
