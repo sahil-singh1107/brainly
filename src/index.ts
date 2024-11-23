@@ -222,8 +222,7 @@ app.get("/api/v1/brain:shareLink", async (req, res) => {
 
 app.post("/api/v1/tags", middleware, async (req,res) => {
     try {
-        let data = Tag.find();
-        console.log(data);
+        let data = await Tag.find();
         res.status(201).json({data});
         return;
     } catch (error) {
