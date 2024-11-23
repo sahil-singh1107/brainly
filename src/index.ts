@@ -240,7 +240,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
         let data = [];
 
         for (const tag of tags) {
-            let content = Content.find({tags})
+            let content = await Content.find({tags})
             data.push(content)
         }
         console.log(data)
