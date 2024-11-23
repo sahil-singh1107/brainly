@@ -231,25 +231,30 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
     }
 })
 
-app.post("/api/v1/getPosts", middleware, async (req: Request, res: Response) => {
-    const contentReq = req as ContentRequest;
-    const id = contentReq.userId;
+app.post("/api/v1/getPosts", middleware, async (req, res) => {
     const { tags } = req.body;
 
     if (!Array.isArray(tags) || tags.length === 0) {
-        res.status(400).json({ error: "Tags must be a non-empty array" });
-        return;
+       res.status(400).json({ error: "Tags must be a non-empty array" });
+       return;
     }
 
     try {
-        // Convert string tags to ObjectId
-        const tagIds = await Tag.find({ name: { $in: tags } }).select("_id");
-        const tagIdArray = tagIds.map((tag) => tag._id);
+        // Step 1: Convert tag names (strings) to ObjectId references
+        const tagObjects = await Tag.find({ name: { $in: tags } }).select("_id");
+        if (tagObjects.length === 0) {
+            res.status(404).json({ error: "No matching tags found" });
+            return;
+        }
 
-        // Fetch content with matching tag ObjectIds
-        const data = await Content.find({ tags: { $in: tagIdArray } }).populate("tags");
+        const tagIds = tagObjects.map((tag) => tag._id);
 
-        res.status(200).json({ data });
+        // Step 2: Query Content model using the resolved ObjectId references
+        const content = await Content.find({ tags: { $in: tagIds } })
+            .populate("tags") // Populate tag details
+            .populate("userId"); // Populate user details if needed
+
+        res.status(200).json({ data: content });
         return;
     } catch (error) {
         console.error("Error fetching posts:", error);
