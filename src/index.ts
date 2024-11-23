@@ -231,13 +231,14 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
     }
 })
 
-app.post("/api/v1/getPosts", middleware, async (req: Request, res: Response) => {
+app.post("/api/v1/getPosts", middleware, async (req, res) => {
     const contentReq = req as ContentRequest; // Ensure ContentRequest is defined properly
     const id = contentReq.userId;
     const { tags } = req.body;
 
     if (!Array.isArray(tags) || tags.length === 0) {
-        return res.status(400).json({ error: "Tags must be a non-empty array" });
+        res.status(400).json({ error: "Tags must be a non-empty array" });
+        return;
     }
 
     try {
@@ -245,9 +246,11 @@ app.post("/api/v1/getPosts", middleware, async (req: Request, res: Response) => 
         const data = await Content.find({ tags: { $in: tags } }).populate("tags");
         
         res.status(200).json({ data });
+        return;
     } catch (error) {
         console.error("Error fetching posts:", error);
         res.status(500).json({ error: "Failed to fetch posts" });
+        return;
     }
 });
 
