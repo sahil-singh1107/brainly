@@ -144,7 +144,7 @@ app.post("/api/v1/getcontent", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const userId = contentReq.userId;
     try {
-        let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username")
+        let data = await Content.find({ userId }).select("link linkType title tags userId createdAt").populate('tags', "title").populate('userId', "username")
         //console.log(data)
         res.status(200).json({ data });
     } catch (error) {
@@ -235,8 +235,8 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
     const { tags } = req.body;
     console.log(tags)
     if (!Array.isArray(tags) || tags.length === 0) {
-       res.status(400).json({ error: "Tags must be a non-empty array" });
-       return;
+        res.status(400).json({ error: "Tags must be a non-empty array" });
+        return;
     }
 
     try {
@@ -247,7 +247,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
         }
         const tagIds = tagObjects.map((tag) => tag._id);
         const content = await Content.find({ tags: { $in: tagIds } })
-            .populate("tags") 
+            .populate("tags")
             .populate("userId");
 
         res.status(200).json({ data: content });
