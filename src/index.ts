@@ -220,4 +220,16 @@ app.get("/api/v1/brain:shareLink", async (req, res) => {
     }
 })
 
+app.post("/api/v1/tags", middleware, async (req,res) => {
+    try {
+        let data = Tag.find();
+        console.log(data);
+        res.status(201).json({data});
+        return;
+    } catch (error) {
+        console.log(error)
+        return;
+    }
+})
+
 connectDB().then(() => app.listen(PORT, () => console.log("server up and running"))).catch((err) => console.log(err));
