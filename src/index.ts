@@ -246,9 +246,7 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
             return;
         }
         const tagIds = tagObjects.map((tag) => tag._id);
-        const content = await Content.find({ tags: { $in: tagIds } })
-            .populate("tags")
-            .populate("userId");
+        const content = await Content.find({ tags: { $in: tagIds } }).select("link linkType title tags userId createdAt").populate("tags").populate("userId");
 
         res.status(200).json({ data: content });
         return;
