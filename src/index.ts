@@ -41,7 +41,6 @@ interface ContentRequest extends Request {
 
 function middleware(req: Request, res: Response, next: NextFunction) {
     const token = req.body.token;
-
     jwt.verify(token, 'sadsfvdfbv34y', function (err: any, decoded: any) {
         if (err) {
             console.log(err);
@@ -65,6 +64,7 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
                 let user = await User.findOne({username: userInput.username})
                 if (user) {
                     res.status(400).json({message: "User already exists"})
+                    return;
                 }
                 await User.create({ username: userInput.username, password: hash })
                 res.status(200).json({ message: "User created successfully" })
@@ -77,7 +77,8 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
         });
     }
     else {
-        res.status(400).json(parsedResult.error);
+        // @ts-ignore
+        res.status(400).json({message: parsedResult.error.errors[0].message});
         return;
     }
 })
@@ -104,7 +105,7 @@ app.post("/api/v1/signin", async (req, res) => {
         });
     }
     else {
-        res.status(400).json(parsedResult.error);
+        res.status(400).json({message: parsedResult.error.errors[0].message});
         return;
     }
 })
@@ -134,16 +135,17 @@ app.post("/api/v1/content", middleware, async (req, res) => {
 
     }
     else {
-        res.status(500).json({ message: "something went wrong" })
+        res.status(400).json({message: parsedResult.error.errors[0].message});
         return;
     }
 })
 
-app.get("/api/v1/content", middleware, async (req, res) => {
+app.post("/api/v1/getcontent", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const userId = contentReq.userId;
     try {
         let data = await Content.find({ userId }).populate('tags', "title").populate('userId', "username");  
+        //console.log(data)
         res.status(200).json({ data });
     } catch (error) {
         res.status(500).json({ error }); 
@@ -199,7 +201,6 @@ app.get("/api/v1/brain:shareLink", async (req, res) => {
     const hash = req.query.hash;
     const link = await Link.findOne({ hash })
     try {
-        console.log(link);
         if (!link) {
            res.status(404).json({ message: "Link not found" });
            return;

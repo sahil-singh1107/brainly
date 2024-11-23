@@ -3,7 +3,7 @@ import Tag from "./Tags"
 import User from "./Users"
 const Schema = mongoose.Schema
 
-const contentType = ["image", "video", "audio", "article"];
+const contentType = ["image", "video", "audio", "article", "tweet", "figma", "code"];
 
 const contentSchema = new Schema({
     link: {type: String, require: true},
