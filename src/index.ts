@@ -186,6 +186,12 @@ app.post("/api/v1/brain/share", middleware, async (req, res) => {
     const contentReq = req as ContentRequest;
     const id = contentReq.userId;
     try {
+
+        let findLink = await Link.findOne({userId: id}) 
+        if (findLink) {
+            res.status(200).json({ data: findLink.hash })
+            return;
+        }
         let share = await Link.create({ hash: hash(id!, { algorithm: "sha1" }), userId: id, mode: req.body.mode })
         res.status(200).json({ data: share.hash })
         return;
