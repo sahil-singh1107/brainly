@@ -145,7 +145,6 @@ app.post("/api/v1/getcontent", middleware, async (req, res) => {
     const userId = contentReq.userId;
     try {
         let data = await Content.find({ userId }).select("link linkType title tags userId createdAt").populate('tags', "title").populate('userId', "username")
-        //console.log(data)
         res.status(200).json({ data });
     } catch (error) {
         res.status(500).json({ error });
@@ -232,21 +231,38 @@ app.post("/api/v1/tags", middleware, async (req, res) => {
 })
 
 app.post("/api/v1/getPosts", middleware, async (req, res) => {
+    const contentReq = req as ContentRequest;
+    const id = contentReq.userId; // Authenticated user's ID
     const { tags } = req.body;
-    console.log(tags)
+
+    console.log(tags);
+
     if (!Array.isArray(tags) || tags.length === 0) {
         res.status(400).json({ error: "Tags must be a non-empty array" });
         return;
     }
 
     try {
+        // Find tags that match the provided titles
         const tagObjects = await Tag.find({ title: { $in: tags } }).select("_id");
+
         if (tagObjects.length === 0) {
             res.status(404).json({ error: "No matching tags found" });
             return;
         }
+
+        // Extract tag IDs
         const tagIds = tagObjects.map((tag) => tag._id);
-        const content = await Content.find({ tags: { $in: tagIds } }).select("link linkType title tags userId createdAt").populate("tags", "title").populate("userId", "username");
+
+        // Find content with the matching tags and userId
+        const content = await Content.find({
+            tags: { $in: tagIds },
+            userId: id, // Ensure content belongs to the authenticated user
+        })
+            .select("link linkType title tags userId createdAt")
+            .populate("tags", "title") // Populate tag titles
+            .populate("userId", "username"); // Populate username
+
         res.status(200).json({ data: content });
         return;
     } catch (error) {
@@ -255,5 +271,6 @@ app.post("/api/v1/getPosts", middleware, async (req, res) => {
         return;
     }
 });
+
 
 connectDB().then(() => app.listen(PORT, () => console.log("server up and running"))).catch((err) => console.log(err));
